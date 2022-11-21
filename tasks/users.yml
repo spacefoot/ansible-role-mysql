@@ -10,3 +10,22 @@
     encrypted: "{{ item.encrypted | default('no') }}"
   with_items: "{{ mysql_users }}"
   no_log: true
+
+- name: Get list of MySQL users.
+  command: mysql -NBe "SELECT CONCAT(user, '@', host) FROM mysql.user"
+  register: mysql_existing_users
+  changed_when: false
+  check_mode: false
+  tags: ['test']
+
+- name: Remove unregistered MySQL users.
+  mysql_user:
+    name: "{{ item.split('@')[0] }}"
+    host: "{{ item.split('@')[1] }}"
+    state: absent
+  loop: "{{ mysql_existing_users.stdout_lines }}"
+  when: |
+    not item.startswith('root@') and
+    not item.startswith('mariadb.sys@') and
+    not item.startswith('replication@') and
+    item not in (mysql_users | map(attribute='name') | zip(mysql_users | map(attribute='host')) | map('join', '@') | list)
