@@ -25,7 +25,8 @@
   tags: ['skip_ansible_galaxy']
 
 - name: Check master replication status.
-  mysql_replication: mode=getprimary
+  mysql_replication:
+    mode: getprimary
   delegate_to: "{{ mysql_replication_master_inventory_host }}"
   register: master
   when:
@@ -50,9 +51,10 @@
     - (mysql_replication_master | length) > 0
 
 - name: Start replication.
-  mysql_replication: mode=startreplica
+  mysql_replication:
+    mode: startreplica
   when:
-    - (slave.Is_Slave is defined and not slave.Is_Slave) or (slave.Is_Slave is not defined and slave is failed)
+    - (slave.Is_Slave is defined and slave.Is_Slave) or (slave.Is_Replica is defined and slave.Is_Replica) or (slave.Is_Slave is not defined and slave.Is_Replica is not defined and slave is failed)
     - mysql_replication_role == 'slave'
     - (mysql_replication_master | length) > 0
   tags: ['skip_ansible_galaxy']
