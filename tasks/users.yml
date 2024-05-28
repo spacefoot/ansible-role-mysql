@@ -9,7 +9,7 @@
     append_privs: "{{ item.append_privs | default('no') }}"
     encrypted: "{{ item.encrypted | default('no') }}"
   with_items: "{{ mysql_users }}"
-  no_log: true
+  no_log: "{{ mysql_hide_passwords }}"
 
 - name: Get list of MySQL users.
   command: mysql -NBe "SELECT CONCAT(user, '@', host) FROM mysql.user"
